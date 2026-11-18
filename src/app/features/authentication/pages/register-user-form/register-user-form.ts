@@ -43,6 +43,12 @@ export class RegisterUserForm {
 
   registerError = computed(() => setErrorMessage(this.registerResource.error()));
 
+  registerSuccess = computed(() => {
+    const SUCCESS_REGISTRATION = this.registerResource.hasValue();
+
+    return SUCCESS_REGISTRATION ? 'Usuário cadastrado com Sucesso!' : undefined;
+  });
+
   register() {
     const userInfos = this.registerForm().value();
     console.log(userInfos, 'USER INFOS');

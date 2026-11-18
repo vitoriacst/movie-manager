@@ -81,6 +81,8 @@
 
   @if (registerError()) {
     <p class="text-sm font-bold text-red-400">{{ registerError() }}</p>
+  } @else if (registerSuccess()) {
+    <p class="text-sm font-bold text-green-400">{{ registerSuccess() }}</p>
   } @else {
     <p class="text-sm font-bold text-red-400">&nbsp;</p>
   }
