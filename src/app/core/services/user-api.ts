@@ -4,6 +4,7 @@ import { tap } from 'rxjs';
 import { IUserLoginSuccessResponse } from '../../shared/models/user-login-success-response';
 import { IUserRegisterSuccessResponse } from '../../shared/models/user-register-success-response';
 import { IUserTokenSuccessAuthResponse } from '../../shared/models/user-token-success-auth-reponse';
+import { UserInfoStore } from './user-infos-store';
 import { UserTokenStore } from './user-token-store';
 
 @Injectable({
@@ -11,10 +12,10 @@ import { UserTokenStore } from './user-token-store';
 })
 export class UserApi {
   private readonly _httpClient = inject(HttpClient);
+  private readonly _userTokenStore = inject(UserTokenStore);
+  private readonly _userInfoStore = inject(UserInfoStore);
 
   private readonly API_URL = 'http://localhost:3000';
-
-  private readonly _userTokenStore = inject(UserTokenStore);
 
   validateToken() {
     return this._httpClient.get<IUserTokenSuccessAuthResponse>(
@@ -24,17 +25,20 @@ export class UserApi {
 
   login(email: string, password: string) {
     return this._httpClient
-      .post<IUserLoginSuccessResponse>(`${this.API_URL}/users/login`, {
+      .post<IUserLoginSuccessResponse>('http://localhost:3000/users/login', {
         email,
         password,
       })
       .pipe(
+        tap(({ user: { id, name, email } }) => {
+          this._userInfoStore.setUserInfos({ id, name, email });
+        }),
         tap((loginResponse) => {
+          console.log('Retorno do login:', loginResponse?.token);
           this._userTokenStore.saveToken(loginResponse?.token);
         }),
       );
   }
-
   register(name: string, email: string, password: string) {
     return this._httpClient.post<IUserRegisterSuccessResponse>(`${this.API_URL}/users`, {
       name,

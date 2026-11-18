@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { UserInfoStore } from '../../services/user-infos-store';
+import { UserTokenStore } from '../../services/user-token-store';
 
 @Component({
   selector: 'app-header',
@@ -7,6 +10,12 @@ import { Component } from '@angular/core';
   styleUrl: './header.css',
 })
 export class Header {
+  private readonly _userTokeStore = inject(UserTokenStore);
+
+  readonly _userInfoStore = inject(UserInfoStore);
+
+  private _router = inject(Router);
+
   isMenuOpen = false;
 
   toggleMenu() {
@@ -14,6 +23,7 @@ export class Header {
   }
 
   logout() {
-    console.log('Saindo do sistema...');
+    this._userTokeStore.removeToken();
+    this._router.navigate(['auth/login']);
   }
 }
