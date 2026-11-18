@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth-guards';
 import { guestGuard } from './core/guards/guest-guard';
 import { AuthenticationScreen } from './features/authentication/layout/authentication-screen/authentication-screen';
 import { MainLayout } from './features/authentication/layout/main-layout/main-layout';
@@ -29,7 +30,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayout,
-    // canActivate: [authGuard],
+    canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'explore', pathMatch: 'full' },
       { path: 'explore', component: ExploreMovies },

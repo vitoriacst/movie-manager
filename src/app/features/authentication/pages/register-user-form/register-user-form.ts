@@ -1,5 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { email, Field, form, minLength, required } from '@angular/forms/signals';
+import { UserApi } from '../../../../core/services/user-api';
+import { IRegisterParams } from '../../models/register-params';
 import { confirmPassword } from '../../validators/confirm-password';
 
 @Component({
@@ -9,6 +12,8 @@ import { confirmPassword } from '../../validators/confirm-password';
   styleUrl: './register-user-form.css',
 })
 export class RegisterUserForm {
+  private readonly _userApi = inject(UserApi);
+
   registerModel = signal({
     name: '',
     email: '',
@@ -27,4 +32,18 @@ export class RegisterUserForm {
 
     confirmPassword(fieldPath.confirmPassword, fieldPath.password);
   });
+
+  registerParams = signal<IRegisterParams | undefined>(undefined);
+
+  registerResource = rxResource({
+    params: () => this.registerParams(),
+    stream: ({ params }) => this._userApi.register(params.name, params.email, params.password),
+  });
+
+  register() {
+    const userInfos = this.registerForm().value();
+    console.log(userInfos, 'USER INFOS');
+
+    this.registerParams.set(userInfos);
+  }
 }
