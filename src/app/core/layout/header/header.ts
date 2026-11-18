@@ -1,30 +1,38 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, linkedSignal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
 import { UserInfoStore } from '../../services/user-infos-store';
 import { UserTokenStore } from '../../services/user-token-store';
 
 @Component({
   selector: 'app-header',
-  imports: [],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })
 export class Header {
-  private readonly _userTokeStore = inject(UserTokenStore);
-
+  private readonly _userTokenStore = inject(UserTokenStore);
+  private readonly _router = inject(Router);
   readonly _userInfoStore = inject(UserInfoStore);
 
-  private _router = inject(Router);
+  navigateEnd = toSignal(
+    this._router.events.pipe(filter((event) => event instanceof NavigationEnd)),
+  );
 
-  isMenuOpen = false;
+  isMenuOpen = linkedSignal({
+    source: this.navigateEnd,
+    computation: () => false,
+  });
 
   toggleMenu() {
-    this.isMenuOpen = !this.isMenuOpen;
+    this.isMenuOpen.update((currentValue) => !currentValue);
   }
 
   logout() {
-    this._userTokeStore.removeToken();
+    this._userTokenStore.removeToken();
     this._userInfoStore.removeUser();
-    this._router.navigate(['auth/login']);
+
+    this._router.navigate(['/auth/login']);
   }
 }
