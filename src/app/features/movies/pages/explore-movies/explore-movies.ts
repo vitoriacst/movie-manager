@@ -13,6 +13,10 @@ import { MoviesApi } from '../../services/movies-api';
 export class ExploreMovies {
   private readonly _moviesApi = inject(MoviesApi);
 
+  movieTitleFilter = signal('');
+
+  movieCategoryFilter = signal('');
+
   movies = signal([{}]);
 
   moviesResource = rxResource({
@@ -21,13 +25,25 @@ export class ExploreMovies {
   });
 
   moviesFiltered = linkedSignal(() => {
+    const moviesList = this.moviesResource.value() ?? [];
     const ERROR_ON_RESPONSE = !!this.moviesResource.error();
 
     if (ERROR_ON_RESPONSE) return [];
 
-    const moviesList = this.moviesResource.value();
+    const titleSearch = this.movieTitleFilter().toLocaleLowerCase().trim();
 
-    return moviesList ?? [];
+    const categorySearch = this.movieCategoryFilter().toLocaleLowerCase().trim();
+
+    if (!titleSearch && !categorySearch) {
+      return moviesList;
+    }
+
+    return moviesList.filter((movie) => {
+      const matchedTitle = movie.titulo.toLocaleLowerCase().includes(titleSearch);
+      const matchedCategory = movie.genero.toLocaleLowerCase().includes(categorySearch);
+
+      return matchedTitle && matchedCategory;
+    });
   });
 
   adicionarFilme() {}
