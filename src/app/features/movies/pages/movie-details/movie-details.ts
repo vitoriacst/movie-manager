@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { tap } from 'rxjs';
+import { FavoritesApi } from '../../../../shared/services/favorite-api';
 import { MoviesApi } from '../../services/movies-api';
 
 @Component({
@@ -12,6 +13,7 @@ import { MoviesApi } from '../../services/movies-api';
 })
 export class MovieDetails {
   private readonly _moviesApi = inject(MoviesApi);
+  private readonly _favoritesApi = inject(FavoritesApi);
 
   readonly BASE_URL = 'http://localhost:3000';
 
@@ -31,7 +33,7 @@ export class MovieDetails {
   });
 
   // Sinais para controle de estado
-  isFavorite = signal(false);
+
   currentRating = signal<number | undefined>(undefined);
 
   starsStatusFilled = computed(() => {
@@ -42,22 +44,49 @@ export class MovieDetails {
     return boolArray;
   });
 
-  rateMoviesResource = rxResource({
+  rateMovieResource = rxResource({
     params: () => {
       const rating = this.currentRating() ?? 0;
 
-      if (rating > 0) {
-        return { id: +this.id(), rating };
-      }
+      if (rating > 0) return { id: +this.id(), rating };
 
       return undefined;
     },
     stream: ({ params }) =>
-      this._moviesApi.rateMovie(params.id, params.rating).pipe(
-        tap((movieUpdated) => {
-          this.movieDetails.set(movieUpdated);
-        }),
-      ),
+      this._moviesApi
+        .rateMovie(params.id, params.rating)
+        .pipe(tap((movieUpdated) => this.movieDetails.set(movieUpdated))),
+  });
+
+  isMovieFavoriteResource = rxResource({
+    params: () => this.id(),
+    stream: ({ params }) => this._favoritesApi.isMovieInFavorites(+params),
+  });
+
+  isFavorite = linkedSignal(() => {
+    const ERROR_ON_RESPONSE = !!this.isMovieFavoriteResource.error();
+
+    if (ERROR_ON_RESPONSE) return false;
+
+    return this.isMovieFavoriteResource.value() ?? false;
+  });
+  toggleFavoriteParams = signal<boolean | undefined>(undefined);
+
+  toggleMovieFavoriteResource = rxResource({
+    params: () => {
+      const status = this.toggleFavoriteParams();
+
+      if (status === undefined) return undefined;
+
+      return {
+        currentFavoriteStatus: status,
+        movieId: +this.id(),
+      };
+    },
+    stream: ({ params }) =>
+      this._favoritesApi
+        .toggleMovieFavorite(params.currentFavoriteStatus, params.movieId)
+        .pipe(tap(() => this.isFavorite.update((cv) => !cv))),
   });
 
   toggleFavorite() {
