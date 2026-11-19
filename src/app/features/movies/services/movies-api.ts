@@ -24,6 +24,7 @@ export class MoviesApi {
     );
   }
   createMovie(movieData: FormData) {
+    console.log(movieData, 'movieData');
     return this._httpClient.post<IMovieResponse>('http://localhost:3000/movies', movieData);
   }
 }
