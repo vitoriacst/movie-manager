@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { tap } from 'rxjs';
+import { environment } from '../../../../../environments/environment.development';
 import { FavoritesApi } from '../../../../shared/services/favorite-api';
 import { MoviesApi } from '../../services/movies-api';
 
@@ -15,7 +16,7 @@ export class MovieDetails {
   private readonly _moviesApi = inject(MoviesApi);
   private readonly _favoritesApi = inject(FavoritesApi);
 
-  readonly BASE_URL = 'http://localhost:3000';
+  readonly BASE_URL = environment.baseUrl;
 
   id = input.required<string>();
 
@@ -70,6 +71,7 @@ export class MovieDetails {
 
     return this.isMovieFavoriteResource.value() ?? false;
   });
+
   toggleFavoriteParams = signal<boolean | undefined>(undefined);
 
   toggleMovieFavoriteResource = rxResource({
@@ -90,8 +92,7 @@ export class MovieDetails {
   });
 
   toggleFavorite() {
-    this.isFavorite.update((value) => !value);
-    console.log(`Filme agora é favorito: ${this.isFavorite()}`);
+    this.toggleFavoriteParams.set(this.isFavorite());
   }
 
   updateRating(newRating: number) {

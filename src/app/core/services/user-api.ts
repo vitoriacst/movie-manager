@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { tap } from 'rxjs';
+import { environment } from '../../../environments/environment.development';
 import { IUserLoginSuccessResponse } from '../../shared/models/user-login-success-response';
 import { IUserRegisterSuccessResponse } from '../../shared/models/user-register-success-response';
 import { IUserTokenSuccessAuthResponse } from '../../shared/models/user-token-success-auth-reponse';
@@ -15,17 +16,15 @@ export class UserApi {
   private readonly _userTokenStore = inject(UserTokenStore);
   private readonly _userInfoStore = inject(UserInfoStore);
 
-  private readonly API_URL = 'http://localhost:3000';
-
   validateToken() {
     return this._httpClient.get<IUserTokenSuccessAuthResponse>(
-      `${this.API_URL}/users/validate-token`,
+      environment.baseUrl + '/users/validate-token',
     );
   }
 
   login(email: string, password: string) {
     return this._httpClient
-      .post<IUserLoginSuccessResponse>('http://localhost:3000/users/login', {
+      .post<IUserLoginSuccessResponse>(environment.baseUrl + '/users/login', {
         email,
         password,
       })
@@ -40,7 +39,7 @@ export class UserApi {
       );
   }
   register(name: string, email: string, password: string) {
-    return this._httpClient.post<IUserRegisterSuccessResponse>(`${this.API_URL}/users`, {
+    return this._httpClient.post<IUserRegisterSuccessResponse>(environment.baseUrl + '/users', {
       name,
       email,
       password,
