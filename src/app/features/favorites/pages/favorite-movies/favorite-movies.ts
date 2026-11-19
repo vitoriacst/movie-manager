@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { MoviesList } from '../../../../shared/components/movies-list/movies-list';
+import { FavoriteApi } from '../../../../shared/services/favorite-api';
 
 @Component({
   selector: 'app-favorite-movies',
@@ -7,4 +9,19 @@ import { MoviesList } from '../../../../shared/components/movies-list/movies-lis
   templateUrl: './favorite-movies.html',
   styleUrl: './favorite-movies.css',
 })
-export class FavoriteMovies {}
+export class FavoriteMovies {
+  private readonly _favoritesApi = inject(FavoriteApi);
+
+  favoritesResource = rxResource({
+    params: () => true,
+    stream: () => this._favoritesApi.getFavorites(),
+  });
+
+  favoritesList = computed(() => {
+    const ERROR_ON_RESPONSE = !!this.favoritesResource.error();
+
+    if (ERROR_ON_RESPONSE) return [];
+
+    return this.favoritesResource.value() ?? [];
+  });
+}
