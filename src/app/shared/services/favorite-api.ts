@@ -1,13 +1,26 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { IMovieToFavoriteSuccessResponse } from '../models/movie-to-favorite-success-reponse';
 import { MoviesListResponse } from '../types/movies-list-response';
 
 @Injectable({
   providedIn: 'root',
 })
-export class FavoriteApi {
+export class FavoritesApi {
   private readonly _httpClient = inject(HttpClient);
+
   getFavorites() {
     return this._httpClient.get<MoviesListResponse>('http://localhost:3000/favorites');
+  }
+
+  addMovieToFavorites(movieId: number) {
+    return this._httpClient.post<IMovieToFavoriteSuccessResponse>(
+      'http://localhost:3000/favorites/' + movieId,
+      {},
+    );
+  }
+
+  removeMovieFromFavorites(movieId: number) {
+    return this._httpClient.delete<void>('http://localhost:3000/favorites/' + movieId);
   }
 }
